@@ -12,7 +12,7 @@ build:
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
-   configuration: /cross-matching/srl2/
+   configuration: srl2
 
 # Optionally, but recommended,
 # declare the Python requirements required to build your documentation

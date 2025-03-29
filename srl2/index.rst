@@ -8,7 +8,7 @@ Multiwavelength cros-matching with MeerKLASS documentation
 # MeerKAT and KiDS DR4 Cross-Matching Pipeline Documentation
 
 ## Overview
-This project cross-matches MeerKAT radio sources with KiDS DR4 optical sources using astrometric positions (RA, Dec). The goal is to identify potential counterparts and analyze their properties across different wavebands.
+This project cross-matches MeerKAT radio sources with KiDS DR4 optical sources using astrometric positions (RA, Dec). The goal is to identify potential counterparts and analyze their properties across different wavebands. This is done using FITS files from both catalogs and dataframes with the physical infomation about the sources.
 
 ## Requirements
 To run this pipeline, you need the following dependencies:
@@ -30,7 +30,7 @@ pip install pandas astropy numpy matplotlib astroquery aplpy
 The pipeline requires the following input data:
 - **KiDS DR4 Bright Sample FITS file** (`KiDS_DR4_brightsample_LePhare.fits`)
 - **MeerKAT radio source FITS file** (`D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`)
-- **Text file with coordinates for FITS cutouts which will be created in the script after the crossmatching process** (`closest_matches_df1.txt`)
+- **Text file with coordinates for FITS cutouts, which will be created in the script after the crossmatching process** (`closest_matches_df1.txt`)
 
 ## Processing Steps
 

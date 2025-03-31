@@ -13,30 +13,33 @@ This project cross-matches MeerKAT radio sources with KiDS DR4 optical sources u
 ## Requirements
 To run this pipeline, you need the following dependencies:
 
-- Python 3
+- Python 3.8
 - `pandas`
 - `astropy`
 - `numpy`
 - `matplotlib`
 - `astroquery`
 - `aplpy`
-
+- `configparser`
+- `astropy.coordinates`
+- `os`
 You can install these packages using:
 
-pip install pandas astropy numpy matplotlib astroquery aplpy
+pip install pandas astropy numpy matplotlib astroquery aplpy, configparser, os etc
 
 
 ## Data Sources
 The pipeline requires the following input data:
-- **KiDS DR4 Bright Sample FITS file** (`KiDS_DR4_brightsample_LePhare.fits`)
-- **MeerKAT radio source FITS file** (`D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`)
+- **KiDS DR4 Bright Sample FITS file, contains the physical infomation collected in the optical survey such as the redshift, coulor, SFR etc.** (`KiDS_DR4_brightsample_LePhare.fits`)
+- **MeerKLASS radio source FITS file, contains the physical infomation that was collected in the radio survey such the the radio flux, astrometric positio etc** (`D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`)
+- **MeerKLASS radio source mosaic image FITS file, contains the astrometric coordinates and the actual image of the sources captured in the survey** ('D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits') 
 - **Text file with coordinates for FITS cutouts, which will be created in the script after the crossmatching process** (`closest_matches_df1.txt`)
 
-## Processing Steps
+## Processing Steps/Workflow
 
 ### 1. Loading Data
 - The KiDS DR4 and MeerKAT data are read from their respective FITS files.
-- The CSV file (`Bright`) is loaded into a Pandas DataFrame.
+- The coner coordiantes are extracted to use the relevenat area of the KiDS catalog for  filtring and crossmatcing. 
 
 ### 2. Filtering KiDS Data
 - The dataset is filtered based on specific RA and Dec ranges.
@@ -47,26 +50,22 @@ The pipeline requires the following input data:
 - The closest KiDS counterpart is identified for each MeerKAT source.
 - A DataFrame (`closest_matches_df`) is created containing matched sources and their separation distances.
 
-### 4. Vizier Query
-- The script queries the Vizier catalog `J/A+A/632/A56/catalog` for additional data within a specified search radius.
-- The retrieved catalog is filtered to keep only sources matching object IDs in the KiDS dataset.
-
-### 5. Filtering Based on Separation
+### 4. Filtering Based on Separation
 - Matched sources are categorized based on angular separation:
-  - Sources with separation < 3 arcsec.
+  - Sources with separation < 3 arcsec which can be configured in the scirpt.
 - Sources are progressively removed from the dataset after each filtering step.
 
-### 6. Generating FITS Cutouts
+### 5. Generating FITS Cutouts
 - The script extracts small FITS cutouts around matched sources,using the coordinates from the same catalog
 - The cutout function ensures that sub-images are centered on source positions.
 - The cutouts are saved for further processing.
 
-### 7. Generating Contour plots and overplotting the plot on top of the 'optical image'
+### 6. Generating Contour plots and overplotting the plot on top of the 'optical image'
 - A set of optical plot is queried using Vizier using the dataframe and the coordinates of the optical catalog that was generated in the crossmatching stage
 - Once the image is generated the contour levels are calculated and they are overplotted onto the optical image to show the radio emissions captured using the MeerKLASS survey 
 
 ## Output Files
-- `closest_matches_df1.txt`: Filtered match lists with the infomation about the crossmatched source, containing infomation offered by both wavebands
+- `closest_matches_df1.txt`: Filtered match lists with the infomation about the crossmatched source, containing infomation offered by both catalogs
 - FITS cutout files for selected sources.
 
 ## Usage

@@ -11,6 +11,7 @@ Multiwavelength cros-matching with MeerKLASS documentation
 This project cross-matches MeerKAT radio sources with KiDS DR4 optical sources using astrometric positions (RA, Dec). The goal is to identify potential counterparts and analyze their properties across different wavebands. This is done using FITS files from both catalogs and dataframes with the physical infomation about the sources.
 
 ## Requirements
+
 To run this pipeline, you need the following dependencies:
 
 - Python 3.8
@@ -23,17 +24,48 @@ To run this pipeline, you need the following dependencies:
 - `configparser`
 - `astropy.coordinates`
 - `os`
+
 You can install these packages using:
 
 pip install pandas astropy numpy matplotlib astroquery aplpy, configparser, os etc
 
 
 ## Data Sources
+
 The pipeline requires the following input data:
-- **KiDS DR4 Bright Sample FITS file, contains the physical infomation collected in the optical survey such as the redshift, coulor, SFR etc.** (`KiDS_DR4_brightsample_LePhare.fits`)
-- **MeerKLASS radio source FITS file, contains the physical infomation that was collected in the radio survey such the the radio flux, astrometric positio etc** (`D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`)
-- **MeerKLASS radio source mosaic image FITS file, contains the astrometric coordinates and the actual image of the sources captured in the survey** ('D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits') 
-- **Text file with coordinates for FITS cutouts, which will be created in the script after the crossmatching process** (`closest_matches_df1.txt`)
+
+- **KiDS DR4 Bright Sample FITS file(`KiDS_DR4_brightsample_LePhare.fits`)
+**: Contains the physical infomation collected in the optical survey such as the redshift, coulor, SFR etc.
+
+- **MeerKLASS radio source FITS file (`D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`)**: Contains the physical infomation that was collected in the radio survey such the the radio flux, astrometric positio etc** 
+
+- **MeerKLASS radio source mosaic image FITS file ('D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits') 
+** :Contains the astrometric coordinates and the actual image of the sources captured in the survey.
+
+- **A comma separated text file with coordinates for respective sources from each catalog** Which will be created in the script after the crossmatching process, and can be found in the same directory** (`closest_matches_df1.txt`)
+
+- ** HiPS to FITS input parameters**
+The HiPS-to-FITS service is used to extract FITS images from a HiPS (Hierarchical Progressive Surveys) dataset. The following parameters are used as input for the query:
+
+hips (str): Name of the HiPS survey from which the FITS image is requested.
+
+width, height (int): Dimensions of the output FITS image in pixels.
+
+ra, dec (float, degrees): Right Ascension (RA) and Declination (Dec) of the target sky position, converted into Longitude and Latitude objects.
+
+fov (float, degrees): Field of view (FoV) in degrees, converted into an astropy.units.Angle object.
+
+projection (str, default: "SIN"): Sky projection method used for the output image.
+
+get_query_payload (bool, default: False): If True, the function returns the query payload instead of executing the request.
+
+format (str, default: "fits"): Specifies the output format of the image (FITS format is used).
+
+min_cut, max_cut (int, optional): Intensity scaling limits for the image.
+
+cmap (str, optional, default: "viridis"): Colormap used for visualization.
+
+This query extracts a FITS image centered on the given sky coordinates, allowing for further analysis of the selected HiPS dataset.
 
 ## Processing Steps/Workflow
 
@@ -65,8 +97,9 @@ The pipeline requires the following input data:
 - Once the image is generated the contour levels are calculated and they are overplotted onto the optical image to show the radio emissions captured using the MeerKLASS survey 
 
 ## Output Files
-- `closest_matches_df1.txt`: Filtered match lists with the infomation about the crossmatched source, containing infomation offered by both catalogs
-- FITS cutout files for selected sources.
+- `closest_matches_df1.txt`: Filtered match lists with the infomation about the crossmatched source, containing infomation offered by both catalogs.
+- FITS cutout files for selected sources from the radio images which can be found in the 'MeeKlASS_cutouts' folder.
+- Cutouts images of the sources from from the optical survey centred around the specific sources with the 'radio contours' that represent the radio emission caputured in MeerKLASS survey, super-plotted onto the source. The imagescan be found the directory named './image_overlay'.
 
 ## Usage
 

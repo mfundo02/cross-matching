@@ -27,24 +27,19 @@ To run this pipeline, you need the following dependencies:
 
 You can install these packages using:
 
-pip install pandas astropy numpy matplotlib astroquery aplpy, configparser, os etc
+pip install pandas astropy numpy matplotlib astroquery aplpy, configparser
 
 
 ## Data Sources
 
 The pipeline requires the following input data:
 
-- **KiDS DR4 Bright Sample FITS file(`KiDS_DR4_brightsample_LePhare.fits`)
-**: Contains the physical infomation collected in the optical survey such as the redshift, coulor, SFR etc.
+- `KiDS_DR4_brightsample_LePhare.fits`: Contains redshift, colour, star formation rate (SFR), and other optical properties of galaxies from the KiDS DR4 survey.
+- `D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`: Contains MeerKAT radio source properties such as flux and coordinates.
+- `D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits`: MeerKAT radio mosaic image with source positions.
+- `closest_matches_df1.txt`: Generated file listing matched sources with relevant properties.
+- HiPS to FITS input parameters:
 
-- **MeerKLASS radio source FITS file (`D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`)**: Contains the physical infomation that was collected in the radio survey such the the radio flux, astrometric positio etc** 
-
-- **MeerKLASS radio source mosaic image FITS file ('D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits') 
-** :Contains the astrometric coordinates and the actual image of the sources captured in the survey.
-
-- **A comma separated text file with coordinates for respective sources from each catalog** Which will be created in the script after the crossmatching process, and can be found in the same directory** (`closest_matches_df1.txt`)
-
-- ** HiPS to FITS input parameters**
 The HiPS-to-FITS service is used to extract FITS images from a HiPS (Hierarchical Progressive Surveys) dataset. The following parameters are used as input for the query:
 
 hips (str): Name of the HiPS survey from which the FITS image is requested.
@@ -109,6 +104,7 @@ Make sure the required FITS and CSV files are in the working directory.
 - Modify RA/Dec filtering parameters if needed to change the region of interest.
 - Adjust the cutout size in the `cutout()` function if necessary.
 - Ensure proper installation of dependencies to avoid import errors.
+- Ensure the values in the 'parameter.ini' file are called correctly
 
 ## Troubleshooting
 - **ImportError**: Check that all required Python packages are installed.

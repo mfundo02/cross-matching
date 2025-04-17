@@ -115,13 +115,15 @@ def find_and_filter_matches(fil_df, df_mk , separation_threshold, output_file1):
     matched_df = pd.DataFrame(closest_matches)
     # Filter matches based on separation threshold
     filtered_df = matched_df[matched_df['Separation'] < separation_threshold]
-    print(f'Amount of sources with a separation of {separation_threshold * 3600:.1f} arcsec:', len(filtered_df))
-    
-    remaining_df = matched_df[~matched_df.index.isin(filtered_df.index)].reset_index(drop=True)
+    print(f'Amount of sources with a separation of {separation_threshold * 3600:.1f} arcsec: {len(filtered_df)} out of {len(matched_df)}')
+
     filtered_df = filtered_df.reset_index(drop=True)
     
+    remaining_df = matched_df[~matched_df.index.isin(filtered_df.index)].reset_index(drop=True)
+
+    
     # Save filtered matches to a file
-    filtered_df.to_csv(output_file1, sep=',', index=False)
+    remaining_df.to_csv('remaining_df', sep=',', index=False)
     
     return remaining_df
 
@@ -158,7 +160,7 @@ def load_and_convert_coordinates(coord_file, wcs_header):
     
     return ID, RA, Dec, c, pixel_x, pixel_y
     
-fits_file = 'D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits'
+#fits_file = 'D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits'
 
 def cutout(fits_file, xc, yc, name, xw=100, yw=100, units='pixels', JPEGFolder="WESTTEST", clobber=True):
     """

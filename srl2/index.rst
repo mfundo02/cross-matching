@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Multiwavelength cros-matching with MeerKLASS documentation
+Multiwavelength cross-matching with MeerKLASS documentation
 ==========================================================
 # MeerKAT and KiDS DR4 Cross-Matching Pipeline Documentation
 
@@ -35,12 +35,13 @@ pip install pandas astropy numpy matplotlib astroquery aplpy, configparser
 The pipeline requires the following input data:
 
 - `KiDS_DR4_brightsample_LePhare.fits`: Contains redshift, colour, star formation rate (SFR), and other optical properties of galaxies from the KiDS DR4 survey.
-- `D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`: Contains MeerKAT radio source properties such as flux and coordinates, the file name quoted is what was used during the testing of the pipelineand should be changed to match the user's own fits file.To change the file simply go to the 'parameter.ini' file in the folder and change the name under
-[meerKAT][fits_data]
+
+- `D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.pybdsf.srl.fits`: Contains MeerKAT radio source properties such as flux and coordinates, the file name quoted is what was used during the testing ofthe pipeline and should be changed to match the user's own fits file.To change the file simply go to the 'parameter.ini' file in the folder and change the name under[meerKAT][fits_data]
 
 - `D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits`: MeerKAT radio mosaic image with source positions. the file name quoted is what was used during the testing of the pipelineand should be changed to match the user's own fits file.To change the file simply go to the 'parameter.ini' file in the folder and change the name under [FITSFile][input_fits]
 
 - `closest_matches_df1.txt`: Generated file listing matched sources with relevant properties.
+
 - HiPS to FITS input parameters which can also be configured in the 'parameter.ini' according to the needs of the user:
 
 The HiPS-to-FITS service is used to extract FITS images from a HiPS (Hierarchical Progressive Surveys) dataset. The following parameters are used as input for the query:
@@ -104,7 +105,6 @@ This query extracts a FITS image centered on the given sky coordinates, allowing
 Make sure the required FITS and CSV files are in the working directory.
 
 ## Notes
-- Modify RA/Dec filtering parameters if needed to change the region of interest.
 - Adjust the cutout size in the `cutout()` function if necessary.
 - Ensure proper installation of dependencies to avoid import errors.
 - Ensure the values in the 'parameter.ini' file are called correctly

@@ -78,7 +78,7 @@ def filter_kids_by_fits(df, meerklass_image):
     return filtered_df
 
 
-def find_and_filter_matches(fil_df, df_mk , separation_threshold, output_file1):
+def find_and_filter_matches(fil_df, df_mk , separation_threshold):
     """
     Find closest matches between KiDS and MeerKAT sources based on angular separation,
     filter sources with separation below threshold, and save to a file.
@@ -114,24 +114,18 @@ def find_and_filter_matches(fil_df, df_mk , separation_threshold, output_file1):
     
     matched_df = pd.DataFrame(closest_matches)
     # Filter matches based on separation threshold
-    filtered_df = matched_df[matched_df['Separation'] < separation_threshold]
+    filtered_df = matched_df[matched_df['Separation'] < separation_threshold/3600]
     print(f'Amount of sources with a separation of {separation_threshold * 3600:.1f} arcsec: {len(filtered_df)} out of {len(matched_df)}')
 
     filtered_df = filtered_df.reset_index(drop=True)
     
-    remaining_df = matched_df[~matched_df.index.isin(filtered_df.index)].reset_index(drop=True)
-
-    
     # Save filtered matches to a file
-    remaining_df.to_csv('remaining_df', sep=',', index=False)
+    filtered_df.to_csv('closest_matches_df1.txt', sep=',', index=False)
     
-    return remaining_df
+    return filtered_df
 
-#################################################################################
 
-#fits_file = 'D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits'
-
-def load_and_convert_coordinates(coord_file, wcs_header):
+def load_and_convert_coordinates(header, fits_file):
     """
     Load source coordinates from a text file and convert to pixel coordinates.
     
@@ -142,18 +136,17 @@ def load_and_convert_coordinates(coord_file, wcs_header):
     Returns:
         tuple: ID, RA, Dec arrays, SkyCoord object, and pixel x, y coordinates.
     """
-    fits_file = 'D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits'
-
+    
     # Load coordinate data
-    ID, RA, Dec = np.loadtxt(coord_file, unpack=True, usecols=[0, 1, 2], delimiter=',', skiprows=1, 
+    ID, RA, Dec = np.loadtxt('closest_matches_df1.txt', unpack=True, usecols=[0, 1, 2], delimiter=',', skiprows=1, 
                              dtype=[('ID', '|S50'), ('MK_RA', 'f8'), ('MK_DEC', 'f8')])
     
     # Create SkyCoord object
     c = SkyCoord(RA, Dec, unit="deg")
-    #f = fits.open(fits_file)
+    f = fits.open(fits_file)
     # Convert to pixel coordinates
-    w = WCS(wcs_header, naxis=2)
-    #w = WCS(f[0].header, naxis=2)
+    #w = WCS(wcs_header, naxis=2)
+    w = WCS(f[0].header, naxis=2)
     x, y = w.world_to_pixel(c)
     pixel_x = np.rint(x).astype(int)
     pixel_y = np.rint(y).astype(int)
@@ -162,7 +155,7 @@ def load_and_convert_coordinates(coord_file, wcs_header):
     
 #fits_file = 'D01-05_LOC22_im-di2_smallFacet.deeper.DI.int.restored.fits'
 
-def cutout(fits_file, xc, yc, name, xw=100, yw=100, units='pixels', JPEGFolder="WESTTEST", clobber=True):
+def cutout(fits_file, xc, yc, name, xw=100, yw=100, units='pixels', JPEGFolder="MeerKLASS_fits_cutouts", clobber=True):
     """
     Create a cutout from a FITS file at specified coordinates.
     
@@ -315,3 +308,91 @@ def create_overlay_image(target_name, result, fitsfile, xG, yG, HF_levels, index
     #Save the figure
     SUFFIX = '-MeerKLASS_KiDS'       
     fig.savefig(f'image_overlay/{target_name}-MeerKLASS_KiDS.png')
+
+def create_dataframe(config):
+    # File inputs and relevent qualities
+    kids_fits = config['kiDS']['fits_data']
+    meerkat_fits = config['meerKAT']['fits_data']
+    meerklass_image = config['FITSFile']['input_fits']
+    separation_threshold = float(config['General']['separation_threshold'])
+    # Load data
+    kids_df = load_fits_data(kids_fits)
+    df_mk = load_fits_data(meerkat_fits)
+    # Filter KiDS data
+    fil_df = filter_kids_by_fits(kids_df, meerklass_image)
+    closest_matches_df1 = find_and_filter_matches(fil_df, df_mk,separation_threshold)
+    return closest_matches_df1
+
+def process_fits_cutout(config):
+    """
+    #Process the FITS cutouts from the configuration and save them.
+    """
+    # Load parameters from the .ini file
+    #fits_file = 'el_withsmear_nr0.deeper.DI.int.restored.fits'
+    fits_file = config['FITSFile']['input_fits']#the mosaic image
+    output_folder = config['FITSFile']['output_folder']
+    xw = int(config['Cutout']['xw'])
+    yw = int(config['Cutout']['yw'])
+    units = config['Cutout']['units']
+    clobber = config.getboolean('Cutout', 'clobber')
+
+    # Load FITS data and coordinates
+    fits_data = fits.getdata(fits_file, 0)
+    header = fits.getheader(fits_file)
+    image_data = fits_data[0][0]
+    #fits_data, header, image_data = load_fits_data(fits_file)
+    
+     #Load and Convert the coordinates from the MeerKLASS catalog into pixels.
+    ID, RA, Dec, c, pixel_x, pixel_y = load_and_convert_coordinates(header, fits_file)
+    
+    # Create cutout
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    cutout(fits_file, xc=pixel_x, yc=pixel_y, name=ID, xw=xw, yw=yw, units=units, JPEGFolder="MeerKLASS_fits_cutouts", clobber=clobber)
+
+def process_hips_data(config):
+    """
+    #Process the HIPS catalog data for the given targets and save results.
+    """
+    hips_catalog = config['General']['hips_catalog']
+    output_dir = config['General']['output_dir']
+    input_file = config['General']['input_file']
+    fov = float(config['General']['fov'])
+    width = int(config['General']['width'])
+    height = int(config['General']['height'])
+    output_folder = config['FITSFile']['output_folder']
+
+    mkcat = np.genfromtxt('closest_matches_df1.txt', 
+                      delimiter=',',      # Adjust the delimiter if necessary
+                      dtype=None,        # Allow mixed data types
+                      encoding=None,     # Use 'utf-8' or None depending on your data
+                      names=True)        # Load column names as field names
+    # Create directories if they don't exist
+    os.makedirs('cutout_mk', exist_ok=True)
+    os.makedirs('image_overlay', exist_ok=True)
+    import shutil
+    shutil.copytree('./MeerKLASS_fits_cutouts', 'cutout_mk', dirs_exist_ok=True)
+
+    
+    # Process each target
+    for ii in range(mkcat.shape[0]):
+        target_name = str(mkcat['ID'][ii])
+        target_RA = mkcat['MK_RA'][ii] * u.deg
+        target_DEC = mkcat['MK_DEC'][ii] * u.deg
+        print(f"Processing {target_name} at RA: {target_RA}, DEC: {target_DEC}")
+
+        #hips = 'CDS/P/KiDS/DR5/color-gri'
+        # Download the optical cutout from the HIPS catalog
+        result = download_cutout(target_RA, target_DEC, hips_catalog, fov=fov, width=width, height=height)
+        #extract the coordinates of the closest matches
+        df_clo = pd.read_csv('closest_matches_df1.txt', delimiter=',')
+        # Extract the RA and DEC for the closest matches
+        xG = df_clo['RAJ2000'][ii]*u.deg
+        yG = df_clo['DECJ2000'][ii]*u.deg
+
+        fitsfile = f'cutout_mk/{target_name}.fits'
+        clean_fits_header(fitsfile)
+        
+        HF_levels = compute_contour_levels(fitsfile)
+        create_overlay_image(target_name, result, fitsfile, xG, yG, HF_levels, ii)
+        
